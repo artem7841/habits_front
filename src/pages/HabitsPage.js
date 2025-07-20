@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 
 const HabitsList = () => {
@@ -7,6 +7,8 @@ const HabitsList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [sumExp, setSumExp] = useState(0);
+  const [streak, setStreak] = useState({});
   const [newHabit, setNewHabit] = useState({
     title: '',
     description: '',
@@ -16,9 +18,10 @@ const HabitsList = () => {
 
   // Получение списка привычек
   useEffect(() => {
+    
     fetchHabits();
     fetchHabitsDone();
-    
+    fetchSumExp();
   }, []);
 
   const fetchHabitsDone = async () => {
@@ -45,10 +48,13 @@ const HabitsList = () => {
     }
   };
 
-  const fetchHabits = async () => {
+  
+
+  const fetchSumExp = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/habits', {
+      const response = await fetch(`http://localhost:8080/api/habits/sum_exp`, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -56,8 +62,51 @@ const HabitsList = () => {
       
       if (!response.ok) throw new Error('Ошибка загрузки привычек');
       
+      const exp = await response.text();
+      setSumExp(exp);
+      
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateStreak = useCallback(async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8080/api/habits/streak/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error('Ошибка загрузки стрика');
+      return await response.text();
+    } catch (err) {
+      console.error('Error fetching streak:', err);
+      return "0"; // Возвращаем "0" при ошибке
+    }
+  }, []);
+
+  const fetchHabits = async () => {
+    try {
+      //setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:8080/api/habits', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!response.ok) throw new Error('Ошибка загрузки привычек');
+      
       const data = await response.json();
-      setHabits(data);
+      
+      //Добавляем streaks ко всем привычкам
+      const habitsWithStreaks = await Promise.all(
+        data.map(async item => ({
+          ...item,
+          streak: await calculateStreak(item.id)
+        }))
+      );
+      
+      setHabits(habitsWithStreaks);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -233,6 +282,7 @@ const unDoneHabit = async (e, habitId) => {
     <div className="habits-container">
       <div className="habits-header">
         <h2>Мои привычки</h2>
+        <p>{sumExp}</p>
         <button onClick={openModal} className="add-habit-btn">
           + Добавить привычку
         </button>
@@ -336,7 +386,7 @@ const unDoneHabit = async (e, habitId) => {
                 <td>{habit.category}</td>
                 <td>{habit.difficulty}</td>
                 <td>
-                    {0}
+                    {habit.streak}
                 </td>
                 <td>
                     <buttom onClick={() => deleteHabit(habit.id)} className="del-habit-btn">удалить</buttom>
