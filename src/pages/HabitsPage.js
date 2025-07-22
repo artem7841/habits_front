@@ -159,25 +159,25 @@ const doneHabit = async (e, habitId) => {
       });
       
       if (!response.ok) throw new Error('Ошибка обновления');
+      
     }
     
     
     // Локально обновляем состояние без дополнительного запроса
     setHabitsDone(prev => {
       if (isChecked) {
-        return [...prev, habitId]; // Добавляем ID
+        return [...prev, habitId];
       } else {
-        return prev.filter(id => id !== habitId); // Удаляем ID
+        return prev.filter(id => id !== habitId); 
       }
     });
-    
-    // Если нужно обновить другие данные
+
     fetchHabits();
+    fetchSumExp();
     
   } catch (error) {
     console.error("Ошибка:", error);
-    // Можно добавить откат состояния, если запрос не прошел
-    e.target.checked = !isChecked; // Возвращаем чекбокс в предыдущее состояние
+    e.target.checked = !isChecked; 
   }
 };
 
@@ -361,6 +361,8 @@ const unDoneHabit = async (e, habitId) => {
         </div>
       )}
 
+      
+
       {/* Таблица привычек */}
       <div className="table-container">
         <table className="habits-table">
@@ -390,6 +392,7 @@ const unDoneHabit = async (e, habitId) => {
                 </td>
                 <td>
                     <buttom onClick={() => deleteHabit(habit.id)} className="del-habit-btn">удалить</buttom>
+                    
                 </td>
                 
               </tr>
