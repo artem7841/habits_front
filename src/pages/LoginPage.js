@@ -30,6 +30,7 @@ const LoginPage = () => {
       }
       // Сохраняем токен
         localStorage.setItem('token', token);
+        localStorage.setItem('name', username);
         login(token);
         navigate('/habits'); // Перенаправляем на защищённую страницу
     } catch (err) {

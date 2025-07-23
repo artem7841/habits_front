@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 
 const HabitsList = () => {
@@ -7,8 +8,11 @@ const HabitsList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showChangeModal, setShowChangeModal] = useState(false);
   const [sumExp, setSumExp] = useState(0);
   const [streak, setStreak] = useState({});
+  const [idChangeHabit, setIdChangeHabit] = useState()
+  const navigate = useNavigate();
   const [newHabit, setNewHabit] = useState({
     title: '',
     description: '',
@@ -23,6 +27,11 @@ const HabitsList = () => {
     fetchHabitsDone();
     fetchSumExp();
   }, []);
+
+  const exit = () => {
+    localStorage.clear();
+    navigate('/login'); 
+  }
 
   const fetchHabitsDone = async () => {
     try {
@@ -132,6 +141,34 @@ const HabitsList = () => {
     }
   }
 
+
+  
+
+  const openChangeModal = (habit) => {
+    setIdChangeHabit(habit.id)
+    setNewHabit({
+      title: habit.title,
+      description: habit.description,
+      category: habit.category,
+      difficulty: habit.difficulty,
+    });
+    setShowChangeModal(true);
+    setError(null);
+  };
+
+  const closeChangeModal = () => {
+    setIdChangeHabit(null)
+    setShowChangeModal(false);
+    setNewHabit({
+      title: '',
+      description: '',
+      category: '',
+      difficulty: 'medium',
+    });
+  };
+
+
+
 const doneHabit = async (e, habitId) => {
   const isChecked = e.target.checked;
   
@@ -230,6 +267,30 @@ const unDoneHabit = async (e, habitId) => {
     }
   };
 
+  // Обработчик изменения привычки
+  const handleChangeHabit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8080/api/habits/change_habit/${idChangeHabit}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(newHabit)
+      });
+
+      if (!response.ok) throw new Error('Ошибка изменения привычки');
+
+      await fetchHabits();
+      closeModal();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewHabit(prev => ({ ...prev, [name]: value }));
@@ -281,14 +342,20 @@ const unDoneHabit = async (e, habitId) => {
   return (
     <div className="habits-container">
       <div className="habits-header">
+        <h2>{localStorage.getItem('name')}</h2>
+        <p>Опыт: {sumExp}</p>
+        <button onClick={exit} className="del-habit-btn">
+          Выйти
+        </button>
+      </div>
+      <div className="habits-header">
         <h2>Мои привычки</h2>
-        <p>{sumExp}</p>
         <button onClick={openModal} className="add-habit-btn">
           + Добавить привычку
         </button>
       </div>
 
-      {/* Модальное окно */}
+      {/* Модальное окно добавить */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">
@@ -361,6 +428,81 @@ const unDoneHabit = async (e, habitId) => {
         </div>
       )}
 
+
+
+      {/* Модальное окно изменить */}
+      {showChangeModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h3>Изменить привычку</h3>
+              <button onClick={closeChangeModal} className="close-btn">&times;</button>
+            </div>
+            
+            <form onSubmit={handleChangeHabit} className="habit-form">
+              {error && <div className="form-error">{error}</div>}
+              
+              <div className="form-group">
+                <label>Название*</label>
+                <input
+                  type="text"
+                  name="title"
+                  value={newHabit.title}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Описание</label>
+                <textarea
+                  name="description"
+                  value={newHabit.description}
+                  onChange={handleInputChange}
+                  rows="3"
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Категория*</label>
+                  <input
+                    type="text"
+                    name="category"
+                    value={newHabit.category}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Сложность</label>
+                  <select
+                    name="difficulty"
+                    value={newHabit.difficulty}
+                    onChange={handleInputChange}
+                  >
+                    <option value="easy">Легкая</option>
+                    <option value="medium">Средняя</option>
+                    <option value="hard">Сложная</option>
+                  </select>
+                </div>
+              </div>
+
+
+              <div className="form-actions">
+                <button type="button" onClick={closeChangeModal} className="cancel-btn">
+                  Отмена
+                </button>
+                <button type="submit" className="submit-btn">
+                  Сохранить
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       
 
       {/* Таблица привычек */}
@@ -392,7 +534,7 @@ const unDoneHabit = async (e, habitId) => {
                 </td>
                 <td>
                     <buttom onClick={() => deleteHabit(habit.id)} className="del-habit-btn">удалить</buttom>
-                    
+                    <buttom onClick={() => openChangeModal(habit)} className="add-habit-btn">изменить</buttom>
                 </td>
                 
               </tr>
