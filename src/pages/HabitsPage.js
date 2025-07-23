@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AuthContext from '../context/AuthContext';
 
 
 const HabitsList = () => {
@@ -13,6 +14,7 @@ const HabitsList = () => {
   const [streak, setStreak] = useState({});
   const [idChangeHabit, setIdChangeHabit] = useState()
   const navigate = useNavigate();
+  const { logout } = useContext(AuthContext);
   const [newHabit, setNewHabit] = useState({
     title: '',
     description: '',
@@ -28,10 +30,10 @@ const HabitsList = () => {
     fetchSumExp();
   }, []);
 
-  const exit = () => {
-    localStorage.clear();
-    navigate('/login'); 
-  }
+  // const exit = () => {
+  //   localStorage.clear();
+  //   navigate('/login'); 
+  // }
 
   const fetchHabitsDone = async () => {
     try {
@@ -344,7 +346,7 @@ const unDoneHabit = async (e, habitId) => {
       <div className="habits-header">
         <h2>{localStorage.getItem('name')}</h2>
         <p>Опыт: {sumExp}</p>
-        <button onClick={exit} className="del-habit-btn">
+        <button onClick={logout} className="del-habit-btn">
           Выйти
         </button>
       </div>

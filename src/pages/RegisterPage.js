@@ -47,6 +47,7 @@ const RegisterPage = () => {
     }
 
     localStorage.setItem('token', token);
+    localStorage.setItem('name', username);
     login(token);
     navigate('/habits');
 
@@ -58,11 +59,11 @@ const RegisterPage = () => {
 
   return (
     <div class="auth-form">
-      <h2>Login</h2>
+      <h2>Регистрация</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label>Username:</label>
+          <label>Имя:</label>
           <input
             type="text"
             value={username}
@@ -70,7 +71,7 @@ const RegisterPage = () => {
           />
         </div>
         <div className="form-group">
-          <label>Email:</label>
+          <label>Почта:</label>
           <input
             type="email"
             value={email}
@@ -78,14 +79,15 @@ const RegisterPage = () => {
           />
         </div>
         <div className="form-group">
-          <label>Password:</label>
+          <label>Пароль:</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
-        <button class="add-habit-btn" type="submit">Login</button>
+        <button class="add-habit-btn" type="submit">Регистрация</button>
+        <button class="add-habit-btn" style={{ marginLeft: "10px" }} type="button" onClick={() => navigate('/login')}>Вход</button>
       </form>
     </div>
   );

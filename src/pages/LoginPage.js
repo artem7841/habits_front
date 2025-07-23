@@ -40,11 +40,11 @@ const LoginPage = () => {
 
   return (
     <div class="auth-form">
-      <h2>Login</h2>
+      <h2>Вход</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label>Username:</label>
+          <label>Имя:</label>
           <input
             type="text"
             value={username}
@@ -52,14 +52,15 @@ const LoginPage = () => {
           />
         </div>
         <div className="form-group">
-          <label>Password:</label>
+          <label>Пароль:</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
-        <button class="add-habit-btn" type="submit">Login</button>
+        <button class="add-habit-btn" type="submit">Вход</button>
+        <button class="add-habit-btn" type="button" style={{ marginLeft: "10px" }} onClick={() => navigate('/register')}>Регистрация</button>
       </form>
     </div>
   );
